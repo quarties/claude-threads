@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **`allowAllReaction: false` turns off the ✅ allow-all reaction on permission prompts.** The prompt then offers 👍 / 👎 only, and a ✅ added anyway approves that one call. Today one ✅ approves every later tool call in the session, including calls that hooks or `ask` rules send to the prompt, such as a force push or a deploy. The default (`true`) keeps today's behaviour. Derived DM instances inherit the setting from their parent entry.
+- **Per-channel `workingDir` and `additionalDirectories`.** A platform entry can set the working directory of its new sessions and a list of extra directories. The extra directories go to Claude as `--add-dir` and are accepted as `send_file` roots, so one bot can serve several projects, each channel with its own set of repositories. The channel sticky shows the channel's directory and how many extra directories it has. `!cd` still overrides the working directory, and derived DM instances inherit both settings from their parent entry. Without these settings nothing changes.
 
 ## [1.40.2] - 2026-10-30
 

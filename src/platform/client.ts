@@ -161,6 +161,8 @@ export interface PlatformClient extends EventEmitter {
     strictMcpConfig?: boolean;
     claudeAiConnectors?: boolean;
     allowAllReaction?: boolean;
+    workingDir?: string;
+    additionalDirectories?: string[];
   };
 
   /**

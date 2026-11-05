@@ -5,7 +5,7 @@ import { EventEmitter } from 'events';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { existsSync, readFileSync, watchFile, unwatchFile, unlinkSync, statSync, readdirSync, writeFileSync } from 'fs';
-import { tmpdir } from 'os';
+import { tmpdir, homedir } from 'os';
 import { join } from 'path';
 import { createLogger } from '../utils/logger.js';
 import { getClaudePath } from './version-check.js';
@@ -87,6 +87,10 @@ export interface PlatformMcpConfig {
   type: string;
   /** Offer the ✅ allow-all reaction on permission prompts (default true). */
   allowAllReaction?: boolean;
+  /** Per-channel working directory (resolved by the session; informational here). */
+  workingDir?: string;
+  /** Per-channel extra directories: `--add-dir` and extra `send_file` roots. */
+  additionalDirectories?: string[];
   url: string;
   token: string;
   channelId: string;
@@ -411,6 +415,16 @@ export function materializeMcpConfig(
  * was written to disk (i.e. not inline-mode) and must be cleaned up by the
  * caller on process exit.
  */
+/** Expand a leading `~` to the user's home directory. */
+export function expandHomeDir(dir: string): string {
+  return dir === '~' || dir.startsWith('~/') ? homedir() + dir.slice(1) : dir;
+}
+
+/** `--add-dir` arguments for a channel's `additionalDirectories` (`~` expanded). */
+export function buildAddDirArgs(dirs: string[] | undefined): string[] {
+  return (dirs ?? []).flatMap((dir) => ['--add-dir', expandHomeDir(dir)]);
+}
+
 export function buildPermissionArgs(opts: {
   permissionMode: PermissionMode;
   mcpServerPath: string;
@@ -502,6 +516,10 @@ export function buildPermissionArgs(opts: {
   }
   if (opts.platformConfig.allowAllReaction === false) {
     mcpEnv.PERMISSION_ALLOW_ALL = '0';
+  }
+  const extraDirs = (opts.platformConfig.additionalDirectories ?? []).map(expandHomeDir);
+  if (extraDirs.length > 0) {
+    mcpEnv[OUTBOUND_ENV.SESSION_ADDITIONAL_DIRS] = extraDirs.join('\n');
   }
   if (opts.outboundFiles?.enabled === false) {
     mcpEnv[OUTBOUND_ENV.OUTBOUND_FILES_ENABLED] = '0';
@@ -746,6 +764,9 @@ export class ClaudeCli extends EventEmitter {
     if (this.options.chrome) {
       args.push('--chrome');
     }
+
+    // Per-channel extra directories: the CLI treats them like the working directory.
+    args.push(...buildAddDirArgs(this.options.platformConfig?.additionalDirectories));
 
     // Append system prompt for context
     if (this.options.appendSystemPrompt) {

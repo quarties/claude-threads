@@ -82,6 +82,8 @@ const SESSION_OWNER_USERNAME = process.env.SESSION_OWNER_USERNAME || '';
 // Env-var names come from a shared module so a rename can't desync the two
 // sides — see src/mcp/outbound-env.ts.
 const SESSION_WORKING_DIR = process.env[OUTBOUND_ENV.SESSION_WORKING_DIR] || '';
+// Per-channel extra directories (newline-separated), accepted as send_file roots.
+const SESSION_ADDITIONAL_DIRS = (process.env[OUTBOUND_ENV.SESSION_ADDITIONAL_DIRS] || '').split('\n').filter(Boolean);
 const SESSION_UPLOAD_DIR = process.env[OUTBOUND_ENV.SESSION_UPLOAD_DIR] || '';
 const OUTBOUND_FILES_ENABLED = (process.env[OUTBOUND_ENV.OUTBOUND_FILES_ENABLED] ?? '1') !== '0';
 const OUTBOUND_FILES_MAX_BYTES = parseInt(
@@ -649,7 +651,7 @@ async function handleSendFile(args: { path: string; caption?: string }): Promise
     api: getApi(),
     threadId: PLATFORM_THREAD_ID,
     enabled: OUTBOUND_FILES_ENABLED,
-    allowedRoots: [SESSION_WORKING_DIR, SESSION_UPLOAD_DIR].filter(p => p.length > 0),
+    allowedRoots: [SESSION_WORKING_DIR, SESSION_UPLOAD_DIR, ...SESSION_ADDITIONAL_DIRS].filter(p => p.length > 0),
     maxBytes: OUTBOUND_FILES_MAX_BYTES,
   });
 }

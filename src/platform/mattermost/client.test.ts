@@ -115,6 +115,8 @@ describe('MattermostClient pure helpers', () => {
       strictMcpConfig: undefined,
       claudeAiConnectors: undefined,
       allowAllReaction: undefined,
+      workingDir: undefined,
+      additionalDirectories: undefined,
     });
   });
 

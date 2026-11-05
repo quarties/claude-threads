@@ -96,6 +96,8 @@ export class SlackClient extends BasePlatformClient {
 
   private outboundFiles?: { enabled?: boolean; maxBytes?: number };
   private allowAllReaction?: boolean;
+  private workingDir?: string;
+  private additionalDirectories?: string[];
   private mcpServers?: Record<string, McpServerConfig>;
   private strictMcpConfig?: boolean;
   private claudeAiConnectors?: boolean;
@@ -127,6 +129,8 @@ export class SlackClient extends BasePlatformClient {
     this.apiUrl = platformConfig.apiUrl || 'https://slack.com/api';
     this.outboundFiles = platformConfig.outboundFiles;
     this.allowAllReaction = platformConfig.allowAllReaction;
+    this.workingDir = platformConfig.workingDir;
+    this.additionalDirectories = platformConfig.additionalDirectories;
     this.mcpServers = platformConfig.mcpServers;
     this.strictMcpConfig = platformConfig.strictMcpConfig;
     this.claudeAiConnectors = platformConfig.claudeAiConnectors;
@@ -983,6 +987,8 @@ export class SlackClient extends BasePlatformClient {
       strictMcpConfig: this.strictMcpConfig,
       claudeAiConnectors: this.claudeAiConnectors,
       allowAllReaction: this.allowAllReaction,
+      workingDir: this.workingDir,
+      additionalDirectories: this.additionalDirectories,
     };
   }
 

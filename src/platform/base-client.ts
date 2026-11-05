@@ -52,6 +52,10 @@ export interface BaseMcpConfig {
   claudeAiConnectors?: boolean;
   /** Offer the ✅ allow-all reaction (see PlatformInstanceConfig). */
   allowAllReaction?: boolean;
+  /** Per-channel working directory (see PlatformInstanceConfig.workingDir). */
+  workingDir?: string;
+  /** Per-channel extra directories (see PlatformInstanceConfig.additionalDirectories). */
+  additionalDirectories?: string[];
 }
 
 /**
