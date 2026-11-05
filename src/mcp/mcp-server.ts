@@ -62,6 +62,8 @@ const ALLOWED_USERS = (process.env.ALLOWED_USERS || '')
   .filter(u => u.length > 0);
 
 const PERMISSION_TIMEOUT_MS = parseInt(process.env.PERMISSION_TIMEOUT_MS || '120000', 10);
+// '0' turns off the ✅ allow-all reaction (platform option `allowAllReaction: false`).
+const PERMISSION_ALLOW_ALL = process.env.PERMISSION_ALLOW_ALL !== '0';
 // Decision bridge back to the bot process (plan approvals / question answers).
 // Its timeout is deliberately much longer than the generic permission timeout:
 // chat users answer plans and questions on their own schedule.
@@ -214,6 +216,11 @@ export interface PermissionHandlerConfig {
   platformConfigured: boolean;
   getAllowAll: () => boolean;
   setAllowAll: (value: boolean) => void;
+  /**
+   * Offer the ✅ allow-all reaction (default true). When false the prompt
+   * offers only 👍 / 👎, and a ✅ that arrives anyway approves this call only.
+   */
+  allowAllReaction?: boolean;
   now?: () => number;
   /**
    * Decision bridge back to the bot process (see src/mcp/decision-bridge.ts).
@@ -343,13 +350,16 @@ export async function handlePermissionWith(
 
     // Post permission request with reaction options
     const toolInfo = formatToolForPermission(toolName, toolInput, formatter);
+    const allowAllReaction = cfg.allowAllReaction ?? true;
     const message = `⚠️ ${formatter.formatBold('Permission requested')}\n\n${toolInfo}\n\n` +
-      `👍 Allow | ✅ Allow all | 👎 Deny`;
+      (allowAllReaction ? `👍 Allow | ✅ Allow all | 👎 Deny` : `👍 Allow | 👎 Deny`);
 
     const botUserId = await api.getBotUserId();
     const post = await api.createInteractivePost(
       message,
-      [APPROVAL_EMOJIS[0], ALLOW_ALL_EMOJIS[0], DENIAL_EMOJIS[0]],
+      allowAllReaction
+        ? [APPROVAL_EMOJIS[0], ALLOW_ALL_EMOJIS[0], DENIAL_EMOJIS[0]]
+        : [APPROVAL_EMOJIS[0], DENIAL_EMOJIS[0]],
       cfg.threadId
     );
 
@@ -363,11 +373,12 @@ export async function handlePermissionWith(
     }
 
     const { username } = decision;
-    if (decision.kind === 'approve') {
+    // With allowAllReaction off, a ✅ that arrives anyway approves this call only.
+    if (decision.kind === 'approve' || (decision.kind === 'allow-all' && !allowAllReaction)) {
       await api.updatePost(post.id, `✅ ${formatter.formatBold('Allowed')} by ${formatter.formatUserMention(username)}\n\n${toolInfo}`);
       mcpLogger.info(`Allowed: ${toolName}`);
       return { behavior: 'allow', updatedInput: toolInput };
-    } else if (decision.kind === 'allow-all') {
+    } else if (decision.kind === 'allow-all' && allowAllReaction) {
       cfg.setAllowAll(true);
       await api.updatePost(post.id, `✅ ${formatter.formatBold('Allowed all')} by ${formatter.formatUserMention(username)}\n\n${toolInfo}`);
       mcpLogger.info(`Allowed all: ${toolName}`);
@@ -436,6 +447,7 @@ async function handlePermission(
     platformConfigured: Boolean(PLATFORM_URL && PLATFORM_TOKEN && PLATFORM_CHANNEL_ID),
     getAllowAll: () => allowAllSession,
     setAllowAll: (v) => { allowAllSession = v; },
+    allowAllReaction: PERMISSION_ALLOW_ALL,
     decisionBridge: DECISION_BRIDGE_PATH
       ? { path: DECISION_BRIDGE_PATH, timeoutMs: DECISION_BRIDGE_TIMEOUT_MS }
       : undefined,

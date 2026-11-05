@@ -95,6 +95,7 @@ export class SlackClient extends BasePlatformClient {
   private rateLimitRetryAfter = 0;
 
   private outboundFiles?: { enabled?: boolean; maxBytes?: number };
+  private allowAllReaction?: boolean;
   private mcpServers?: Record<string, McpServerConfig>;
   private strictMcpConfig?: boolean;
   private claudeAiConnectors?: boolean;
@@ -125,6 +126,7 @@ export class SlackClient extends BasePlatformClient {
     this.allowedUsers = platformConfig.allowedUsers;
     this.apiUrl = platformConfig.apiUrl || 'https://slack.com/api';
     this.outboundFiles = platformConfig.outboundFiles;
+    this.allowAllReaction = platformConfig.allowAllReaction;
     this.mcpServers = platformConfig.mcpServers;
     this.strictMcpConfig = platformConfig.strictMcpConfig;
     this.claudeAiConnectors = platformConfig.claudeAiConnectors;
@@ -980,6 +982,7 @@ export class SlackClient extends BasePlatformClient {
       mcpServers: this.mcpServers,
       strictMcpConfig: this.strictMcpConfig,
       claudeAiConnectors: this.claudeAiConnectors,
+      allowAllReaction: this.allowAllReaction,
     };
   }
 

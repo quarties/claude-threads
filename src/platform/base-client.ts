@@ -50,6 +50,8 @@ export interface BaseMcpConfig {
   strictMcpConfig?: boolean;
   /** Allow the account's claude.ai connectors (default off; see PlatformInstanceConfig). */
   claudeAiConnectors?: boolean;
+  /** Offer the ✅ allow-all reaction (see PlatformInstanceConfig). */
+  allowAllReaction?: boolean;
 }
 
 /**

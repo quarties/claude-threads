@@ -888,6 +888,12 @@ export interface PlatformInstanceConfig {
   type: 'mattermost' | 'slack';
   displayName: string;
   /**
+   * Offer the ✅ "allow all" reaction on tool-permission prompts (default true).
+   * With `false` the prompt offers 👍 / 👎 only, so one reaction cannot approve
+   * every later tool call in the session.
+   */
+  allowAllReaction?: boolean;
+  /**
    * Direct channel mode (DCM): treat the whole configured channel as one
    * session. The bot replies with top-level channel posts instead of thread
    * replies — the channel reads like a plain conversation. Only one session

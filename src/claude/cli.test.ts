@@ -655,6 +655,13 @@ describe('buildPermissionArgs', () => {
     expect(env.SESSION_UPLOAD_DIR).toBe('/tmp/uploads/X');
   });
 
+  it('sets PERMISSION_ALLOW_ALL=0 only when the platform turns allowAllReaction off', () => {
+    const off = buildPermissionArgs({ ...baseOpts, permissionMode: 'default', platformConfig: { ...baseOpts.platformConfig, allowAllReaction: false } });
+    expect(getMcpEnv(off.args).PERMISSION_ALLOW_ALL).toBe('0');
+    const unset = buildPermissionArgs({ ...baseOpts, permissionMode: 'default' });
+    expect(getMcpEnv(unset.args).PERMISSION_ALLOW_ALL).toBeUndefined();
+  });
+
   it('forwards DECISION_BRIDGE_PATH (and the timeout override) to the MCP child', () => {
     const prev = process.env.DECISION_BRIDGE_TIMEOUT_MS;
     process.env.DECISION_BRIDGE_TIMEOUT_MS = '120000';

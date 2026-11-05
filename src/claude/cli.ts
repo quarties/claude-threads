@@ -85,6 +85,8 @@ export interface ClaudeEvent {
 
 export interface PlatformMcpConfig {
   type: string;
+  /** Offer the ✅ allow-all reaction on permission prompts (default true). */
+  allowAllReaction?: boolean;
   url: string;
   token: string;
   channelId: string;
@@ -497,6 +499,9 @@ export function buildPermissionArgs(opts: {
   }
   if (opts.uploadDir) {
     mcpEnv[OUTBOUND_ENV.SESSION_UPLOAD_DIR] = opts.uploadDir;
+  }
+  if (opts.platformConfig.allowAllReaction === false) {
+    mcpEnv.PERMISSION_ALLOW_ALL = '0';
   }
   if (opts.outboundFiles?.enabled === false) {
     mcpEnv[OUTBOUND_ENV.OUTBOUND_FILES_ENABLED] = '0';
