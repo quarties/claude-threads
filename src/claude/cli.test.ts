@@ -14,7 +14,7 @@ import {
   buildPermissionArgs,
   type ClaudeCliOptions,
   type StatusLineData,
-  type McpConfigBlob, expandHomeDir } from './cli.js';
+  type McpConfigBlob, expandHomeDir, buildAddDirArgs } from './cli.js';
 
 describe('ClaudeCli', () => {
   let originalEnv: NodeJS.ProcessEnv;
@@ -667,6 +667,11 @@ describe('buildPermissionArgs', () => {
   it('omits SESSION_ADDITIONAL_DIRS when the channel declares no extra directories', () => {
     const { args } = buildPermissionArgs({ ...baseOpts, permissionMode: 'default' });
     expect(getMcpEnv(args).SESSION_ADDITIONAL_DIRS).toBeUndefined();
+  });
+
+  it('buildAddDirArgs passes each channel directory as --add-dir with ~ expanded', () => {
+    expect(buildAddDirArgs(['~/Projects/a', '/srv/b'])).toEqual(['--add-dir', `${homedir()}/Projects/a`, '--add-dir', '/srv/b']);
+    expect(buildAddDirArgs(undefined)).toEqual([]);
   });
 
   it('expandHomeDir expands only a leading ~', () => {

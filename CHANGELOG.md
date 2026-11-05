@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Per-channel `workingDir` and `additionalDirectories`.** A platform entry can set the working directory of its new sessions and a list of extra directories. The extra directories go to Claude as `--add-dir` and are accepted as `send_file` roots, so one bot can serve several projects, each channel with its own set of repositories. The channel sticky shows the channel's directory and how many extra directories it has. `!cd` still overrides the working directory, and derived DM instances inherit both settings from their parent entry. Without these settings nothing changes.
+
 ## [1.40.2] - 2026-10-30
 
 ### Changed

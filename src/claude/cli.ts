@@ -418,6 +418,11 @@ export function expandHomeDir(dir: string): string {
   return dir === '~' || dir.startsWith('~/') ? homedir() + dir.slice(1) : dir;
 }
 
+/** `--add-dir` arguments for a channel's `additionalDirectories` (`~` expanded). */
+export function buildAddDirArgs(dirs: string[] | undefined): string[] {
+  return (dirs ?? []).flatMap((dir) => ['--add-dir', expandHomeDir(dir)]);
+}
+
 export function buildPermissionArgs(opts: {
   permissionMode: PermissionMode;
   mcpServerPath: string;
@@ -756,9 +761,7 @@ export class ClaudeCli extends EventEmitter {
     }
 
     // Per-channel extra directories: the CLI treats them like the working directory.
-    for (const dir of this.options.platformConfig?.additionalDirectories ?? []) {
-      args.push('--add-dir', expandHomeDir(dir));
-    }
+    args.push(...buildAddDirArgs(this.options.platformConfig?.additionalDirectories));
 
     // Append system prompt for context
     if (this.options.appendSystemPrompt) {
