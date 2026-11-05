@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **`allowAllReaction: false` turns off the ✅ allow-all reaction on permission prompts.** The prompt then offers 👍 / 👎 only, and a ✅ added anyway approves that one call. Today one ✅ approves every later tool call in the session, including calls that hooks or `ask` rules send to the prompt, such as a force push or a deploy. The default (`true`) keeps today's behaviour. Derived DM instances inherit the setting from their parent entry.
+
 ## [1.40.2] - 2026-10-30
 
 ### Changed
