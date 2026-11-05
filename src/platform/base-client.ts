@@ -50,6 +50,10 @@ export interface BaseMcpConfig {
   strictMcpConfig?: boolean;
   /** Allow the account's claude.ai connectors (default off; see PlatformInstanceConfig). */
   claudeAiConnectors?: boolean;
+  /** Per-channel working directory (see PlatformInstanceConfig.workingDir). */
+  workingDir?: string;
+  /** Per-channel extra directories (see PlatformInstanceConfig.additionalDirectories). */
+  additionalDirectories?: string[];
 }
 
 /**

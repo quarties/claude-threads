@@ -5,7 +5,7 @@ import { EventEmitter } from 'events';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { existsSync, readFileSync, watchFile, unwatchFile, unlinkSync, statSync, readdirSync, writeFileSync } from 'fs';
-import { tmpdir } from 'os';
+import { tmpdir, homedir } from 'os';
 import { join } from 'path';
 import { createLogger } from '../utils/logger.js';
 import { getClaudePath } from './version-check.js';
@@ -85,6 +85,10 @@ export interface ClaudeEvent {
 
 export interface PlatformMcpConfig {
   type: string;
+  /** Per-channel working directory (resolved by the session; informational here). */
+  workingDir?: string;
+  /** Per-channel extra directories: `--add-dir` and extra `send_file` roots. */
+  additionalDirectories?: string[];
   url: string;
   token: string;
   channelId: string;
@@ -409,6 +413,11 @@ export function materializeMcpConfig(
  * was written to disk (i.e. not inline-mode) and must be cleaned up by the
  * caller on process exit.
  */
+/** Expand a leading `~` to the user's home directory. */
+export function expandHomeDir(dir: string): string {
+  return dir === '~' || dir.startsWith('~/') ? homedir() + dir.slice(1) : dir;
+}
+
 export function buildPermissionArgs(opts: {
   permissionMode: PermissionMode;
   mcpServerPath: string;
@@ -497,6 +506,10 @@ export function buildPermissionArgs(opts: {
   }
   if (opts.uploadDir) {
     mcpEnv[OUTBOUND_ENV.SESSION_UPLOAD_DIR] = opts.uploadDir;
+  }
+  const extraDirs = (opts.platformConfig.additionalDirectories ?? []).map(expandHomeDir);
+  if (extraDirs.length > 0) {
+    mcpEnv[OUTBOUND_ENV.SESSION_ADDITIONAL_DIRS] = extraDirs.join('\n');
   }
   if (opts.outboundFiles?.enabled === false) {
     mcpEnv[OUTBOUND_ENV.OUTBOUND_FILES_ENABLED] = '0';
@@ -740,6 +753,11 @@ export class ClaudeCli extends EventEmitter {
     // Chrome integration
     if (this.options.chrome) {
       args.push('--chrome');
+    }
+
+    // Per-channel extra directories: the CLI treats them like the working directory.
+    for (const dir of this.options.platformConfig?.additionalDirectories ?? []) {
+      args.push('--add-dir', expandHomeDir(dir));
     }
 
     // Append system prompt for context

@@ -4,7 +4,7 @@
 
 import { describe, test, expect, beforeEach, afterEach, it } from 'bun:test';
 import { mkdtempSync, rmSync, readFileSync, statSync, existsSync, readdirSync } from 'fs';
-import { tmpdir } from 'os';
+import { tmpdir, homedir } from 'os';
 import { join } from 'path';
 import {
   ClaudeCli,
@@ -14,8 +14,7 @@ import {
   buildPermissionArgs,
   type ClaudeCliOptions,
   type StatusLineData,
-  type McpConfigBlob,
-} from './cli.js';
+  type McpConfigBlob, expandHomeDir } from './cli.js';
 
 describe('ClaudeCli', () => {
   let originalEnv: NodeJS.ProcessEnv;
@@ -653,6 +652,28 @@ describe('buildPermissionArgs', () => {
     const env = getMcpEnv(args);
     expect(env.SESSION_WORKING_DIR).toBe('/srv/work');
     expect(env.SESSION_UPLOAD_DIR).toBe('/tmp/uploads/X');
+  });
+
+  it('forwards per-channel additionalDirectories (with ~ expanded) as send_file roots', () => {
+    const { args } = buildPermissionArgs({
+      ...baseOpts,
+      permissionMode: 'default',
+      platformConfig: { ...baseOpts.platformConfig, additionalDirectories: ['~/Projects/repo-a', '/srv/repo-b'] },
+    });
+    const env = getMcpEnv(args);
+    expect(env.SESSION_ADDITIONAL_DIRS).toBe(`${homedir()}/Projects/repo-a\n/srv/repo-b`);
+  });
+
+  it('omits SESSION_ADDITIONAL_DIRS when the channel declares no extra directories', () => {
+    const { args } = buildPermissionArgs({ ...baseOpts, permissionMode: 'default' });
+    expect(getMcpEnv(args).SESSION_ADDITIONAL_DIRS).toBeUndefined();
+  });
+
+  it('expandHomeDir expands only a leading ~', () => {
+    expect(expandHomeDir('~')).toBe(homedir());
+    expect(expandHomeDir('~/x')).toBe(`${homedir()}/x`);
+    expect(expandHomeDir('/a/~/b')).toBe('/a/~/b');
+    expect(expandHomeDir('~other/x')).toBe('~other/x');
   });
 
   it('forwards DECISION_BRIDGE_PATH (and the timeout override) to the MCP child', () => {
